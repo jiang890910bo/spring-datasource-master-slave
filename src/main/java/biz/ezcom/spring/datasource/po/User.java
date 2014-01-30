@@ -2,11 +2,12 @@ package biz.ezcom.spring.datasource.po;
 
 import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 
-public class User implements RowMapper<User>{
+public class User implements RowMapper<User> {
     private Integer id;
     private String  username;
     private String  password;
@@ -54,43 +55,26 @@ public class User implements RowMapper<User>{
     }
 
     @Override
-    public int hashCode() {
-        return this.getId() + 3 * this.getUsername().hashCode() + 5 * this.getPassword().hashCode() + 7 * this.getBirthday().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null || (obj.getClass() != this.getClass())) {
-            return false;
-        }
-        User user = (User) obj;
-        if (this.getId() != user.getId()) {
-            return false;
-        }
-        if (!this.getUsername().equals(user.getUsername())) {
-            return false;
-        }
-        if (!this.getPassword().equals(user.getPassword())) {
-            return false;
-        }
-        if (!this.getBirthday().equals(user.getBirthday())) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
         return this.getId() + " : " + this.getUsername() + " : " + this.getPassword() + " : " + this.getBirthday();
     }
 
+    @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
-        user.setId(rs.getInt("id"));
-        user.setUsername(rs.getString("username"));
-        user.setPassword(rs.getString("password"));
-        user.setBirthday(rs.getDate("birthday"));
+        ResultSetMetaData metaDate = rs.getMetaData();
+        for (int i = 1; i <= metaDate.getColumnCount(); i++) {
+            final String columnName = metaDate.getColumnName(i);
+            if ("id".equals(columnName)) {
+                user.setId(rs.getInt(i));
+            } else if ("username".equals(columnName)) {
+                user.setUsername(rs.getString(i));
+            } else if ("password".equals(columnName)) {
+                user.setPassword(rs.getString(i));
+            } else if ("birthday".equals(columnName)) {
+                user.setBirthday(rs.getDate(i));
+            }
+        }
         return user;
     }
-
 }

@@ -18,26 +18,12 @@ public class UserServiceTest {
     private IUserDao userDao;
 
     @Test
-    public void testSave() {
-        User user = new User(1, "Felix", "save", new Date(System.currentTimeMillis()));
-        userDao.save(user);
-    }
-
-    @Test
-    public void testRemove() {
-        userDao.remove(1);
-    }
-
-    @Test
-    public void testModify() {
-        User user = new User(1, "Felix", "modify", new Date(System.currentTimeMillis()));
-        userDao.modify(user);
-    }
-
-    @Test
-    public void testFind() {
-        Integer id = 1;
-        User user = userDao.find(id);
-        System.out.println(user);
+    public void test() throws InterruptedException {
+        userDao.modifyUser(new User(1, "save1", "pwd", new Date(System.currentTimeMillis())));
+        userDao.saveUser(new User(null, "save2", "pwd", new Date(System.currentTimeMillis())));
+        userDao.removeUser(8);
+        System.out.println(userDao.findUser(1));
+        System.out.println(userDao.findUser(1));
+        System.out.println(userDao.findUser(1));
     }
 }

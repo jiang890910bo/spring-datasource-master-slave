@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -20,13 +19,15 @@ import biz.ezcom.spring.datasource.po.User;
 @Repository
 public class UserDao implements IUserDao {
     @Resource
-    private JdbcTemplate jdbcTemplate;
-
+    private JdbcTemplate jdbcTemplateMaster;
+    @Resource
+    private JdbcTemplate jdbcTemplateSlave;
+    
     @Override
-    public void save(final User user) {
-        final String sql = "INSERT INTO user (username, password, birthday) VALUES(?,?,?)";
+    public int saveUser(final User user) {
+        final String sql = "INSERT INTO t_user (username, password, birthday) VALUES(?,?,?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(new PreparedStatementCreator() {
+        int result = jdbcTemplateMaster.update(new PreparedStatementCreator() {
             public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
                 PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
                 ps.setString(1, user.getUsername());
@@ -37,30 +38,26 @@ public class UserDao implements IUserDao {
         }, keyHolder);
         int id = keyHolder.getKey().intValue();
         user.setId(id);
+        return result;
     }
 
     @Override
-    public void remove(Integer id) {
-        String sql = "DELETE FROM user WHERE id=" + id;
-        jdbcTemplate.update(sql);
+    public int removeUser(Integer id) {
+        String sql = "DELETE FROM t_user WHERE id=" + id;
+        return jdbcTemplateMaster.update(sql);
     }
 
     @Override
-    public void modify(User user) {
-        String sql = "UPDATE user SET username=?,password=?,birthday=? WHERE id=?";
+    public int modifyUser(User user) {
+        String sql = "UPDATE t_user SET username=?,password=?,birthday=? WHERE id=?";
         Object[] args = new Object[] { user.getUsername(), user.getPassword(), user.getBirthday(), user.getId() };
         int[] argTypes = new int[] { Types.VARCHAR, Types.VARCHAR, Types.DATE, Types.INTEGER };
-        jdbcTemplate.update(sql, args, argTypes);
+        return jdbcTemplateMaster.update(sql, args, argTypes);
     }
 
     @Override
-    public User find(Integer id) {
-        String sql = "SELECT id,username,password,birthday FROM user WHERE id=" + id;
-        List<User> users = jdbcTemplate.query(sql, new User());
-        if (users.isEmpty()) {
-            return null;
-        } else {
-            return users.get(0);
-        }
+    public User findUser(Integer id) {
+        String sql = "SELECT id,username,password,birthday FROM t_user WHERE id=" + id;
+        return jdbcTemplateSlave.queryForObject(sql, new User());
     }
 }
